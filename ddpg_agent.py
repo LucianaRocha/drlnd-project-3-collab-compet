@@ -11,12 +11,16 @@ import torch.optim as optim
 from model import Actor, Critic
 
 BUFFER_SIZE = int(1e5)  # replay buffer size
-BATCH_SIZE = 64         # minibatch size
+BATCH_SIZE = 128        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 5e-3              # for soft update of target parameters
 LR_actor = 1e-3         # learning rate for actor
 LR_critic = 1e-3        # learning rate for critic
 WEIGHT_DECAY = 0        # L2 weight decay
+FC1_UNITS = 64          # Full connected 1
+FC2_UNITS = 64          # Full connected 2
+THETA = 0.9             # Theta noise process
+SIGMA = 0.01            # Sigma noise process
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -38,14 +42,14 @@ class Agent():
         self.seed = random.seed(seed)
 
         # Actor-Network
-        self.actor_local = Actor(state_size, action_size, seed, fc1_units=64, fc2_units=64).to(device)
-        self.actor_target = Actor(state_size, action_size, seed, fc1_units=64, fc2_units=64).to(device)
+        self.actor_local = Actor(state_size, action_size, seed, fc1_units=FC1_UNITS, fc2_units=FC2_UNITS).to(device)
+        self.actor_target = Actor(state_size, action_size, seed, fc1_units=FC1_UNITS, fc2_units=FC2_UNITS).to(device)
         self.soft_update(self.actor_local, self.actor_target, 1)
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_actor)
 
         # Critic-Network
-        self.critic_local = Critic(state_size, action_size, seed, fc1_units=64, fc2_units=64).to(device)
-        self.critic_target = Critic(state_size, action_size, seed, fc1_units=64, fc2_units=64).to(device)
+        self.critic_local = Critic(state_size, action_size, seed, fc1_units=FC1_UNITS, fc2_units=FC2_UNITS).to(device)
+        self.critic_target = Critic(state_size, action_size, seed, fc1_units=FC1_UNITS, fc2_units=FC2_UNITS).to(device)
         self.soft_update(self.critic_local, self.critic_target, 1)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_critic, weight_decay=WEIGHT_DECAY)
         
@@ -131,7 +135,7 @@ class Agent():
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=0., theta=0.9, sigma=0.01):
+    def __init__(self, size, seed, mu=0., theta=THETA, sigma=SIGMA):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta
