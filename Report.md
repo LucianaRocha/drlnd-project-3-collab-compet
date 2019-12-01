@@ -38,30 +38,37 @@ Below I describe model architecture, learning algorithm, and hyperparameters.
 
 ### Model architecture  
 
-The **Actor Network** receives as input 24^1 variables representing the observation space and generates as output 2 numbers representing the predicted best action for that observed state. That means, the Actor is used as the function approximator to the optimal policy π deterministically.
+The **Actor Network** receives as input 24* variables representing the observation space and generates as output 2 numbers representing the predicted best action for that observed state. That means, the Actor is used as the function approximator to the optimal policy π deterministically.
 
-The **Critic Network** receives as input 24^1 variables representing the observation space. The result of the Critic's first hidden layer, after being normalized, is stacked with the action proceeding from the Actor Network to be passed in as input for the Critic's second hidden layer.
+The **Critic Network** receives as input 24* variables representing the observation space. The result of the Critic's first hidden layer, after being normalized, is stacked with the action proceeding from the Actor Network to be passed in as input for the Critic's second hidden layer.
 The output of this network is the predict target value, based on the given state and the estimated best action.
 That means, the Critic is used as the function approximator to the optimal action-value function Q(s, a).
 
-^1 Why 24 and not 8 variables as input?  
+*Why 24 and not 8 variables as input?  
 Although the observation space consists of 8 variables, the networks receive as input 3 Stacked Vectors summing up 24 variables.  
 In cases where Vector Observations need to be remembered or compared over time, increasing the Stacked Vectors values allows the agent to keep track of multiple observations into the past.
 
   
-Initially, I created the Actor and Critic networks each of them with two fully-connected hidden layers with ReLU activation and one fully-connected linear output layer. I defined my network as having an input of 24 variables, 400 nodes for the first hidden layer, 300 nodes for the second one.  
+In my final model, I created the Actor and Critic networks each of them with two fully-connected hidden layers with ReLU activation and one fully-connected linear output layer. I defined my network as having an input of 24 variables, 64 nodes for the first hidden layer, 64 nodes for the second one.  
 
-- fc_layers for the actor network: FC1: 400 nodes, FC2: 300 nodes
-- fc_layers for the critic network: FC1: 400 nodes, FC2: 300 nodes  
+- fc_layers for the actor network: FC1: 64 nodes, FC2: 64 nodes
+- fc_layers for the critic network: FC1: 64 nodes, FC2: 64 nodes  
 
 
 ### Learning algorithm
   
 The training function receives from the environment states (_S_) corresponding to each one of the agents.  Those states are passed into the actor-local, which calculates the best action for them. Then, a noise process is applied to actions (_A_) in order to improve the exploration of the environment.  
-In the next step, the actions are sent and performed in the environment, which returns a reward (_R_) and a next state (_S'_). The set of variables (_S, A, R, S'_) of each agent is an experience that is stored in a single replay buffer. When the replay buffer has sufficient experiences, a minibatch-sample is randomly selected to train the networks. For each experience in the minibatch, a target-reward is calculated.  
-The target-reward is the sum of the reward received and the discounted-reward of the next states. The discounted-reward is calculated by the critic-target based on the next states and the next actions calculated by the actor-target. The target-reward is compared to the expected-reward, which is predicted by the critic-local, to find the mean squared error loss. This loss is used to update the critic-local weights.  
+In the next step, the actions are sent and performed in the environment, which returns a reward (_R_) and a next state (_S'_).  
+The set of variables (_S, A, R, S'_) of each agent is an experience that is stored in a single replay buffer. When the replay buffer has sufficient experiences, a minibatch-sample is randomly selected to train the networks.  
+
+For each experience in the minibatch, a target-reward is calculated. 
+The target-reward is the sum of the reward received and the discounted-reward of the next states. The discounted-reward is calculated by the critic-target based on the next states and the next actions calculated by the actor-target.  
+Then, the target-reward is compared to the expected-reward, which is predicted by the critic-local, to find the mean squared error loss. This loss is used to update the critic-local weights.  
+
 After being updated, the critic-local determines the state-based rewards along with the actions calculated by the actor-local.
-The average of these rewards is used to update the actor-local weights. Following the update of the local networks, a soft update is performed to transfer the weights from the local to the target networks gradually.
+The average of these rewards is used to update the actor-local weights.  
+
+Following the update of the local networks, a soft update is performed to transfer the weights from the local to the target networks gradually.
 
 
 ### Hyperparameters
@@ -95,7 +102,7 @@ The environment is considered solved, when the average (over 100 episodes) of th
 
 ## Conclusion  
 
-To solve this challenge, I studied and implemented the architecture proposed in the [DDPG paper](https://arxiv.org/abs/1509.02971).  Following an extensive fine-tuning phase, I reached a impressive result, solving the environment in only **274** episodes.
+To solve this challenge, I studied and implemented the architecture proposed in the [DDPG paper](https://arxiv.org/abs/1509.02971).  Following an extensive fine-tuning phase, I reached a impressive result, solving the environment in only **274** episodes.  
 Working on projects like this one involves a great deal of reading, studying,  attention,  and patience, especially in the tailoring of the hyperparameters.
 
 
